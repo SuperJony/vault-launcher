@@ -41,3 +41,25 @@ Use Bun for all scripts:
 ## Platform & Launch Notes
 - Plugin targets desktop only; launch commands are macOS-focused (CLI or `open -a`).
 - Do not use `spawnSync` or `shell: true`; pass paths as separate args to preserve spaces.
+
+## Publishing to Community Plugins
+
+### Release Workflow
+1. Bump version: `bun version patch|minor|major`
+   - Updates `package.json`, `manifest.json`, `versions.json` automatically
+   - Creates a commit and tag (e.g., `v1.0.1`)
+2. Push: `git push && git push --tags`
+3. GitHub Actions builds and creates a draft release
+4. Publish the draft: `gh release edit <tag> --draft=false`
+
+### Community Plugin Submission
+1. Fork [obsidian-releases](https://github.com/obsidianmd/obsidian-releases)
+2. Edit `community-plugins.json`, add entry at the end
+3. Create PR with title: `Add plugin: Vault Launcher`
+4. Use the official PR template (required for bot validation)
+
+### Important Notes
+- Tag must NOT have `v` prefix for Obsidian bot validation; however `bun version` creates `v`-prefixed tags. The release workflow strips the `v` prefix when validating against `manifest.json`.
+- Ensure `bun run build` and `bun run lint` pass before releasing.
+- See `doc/PUBLISHING.md` for detailed submission requirements.
+
