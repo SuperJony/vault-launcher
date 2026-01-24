@@ -1,90 +1,123 @@
-# Obsidian Sample Plugin
+# Obsidian Vault Launcher
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+> Open your Obsidian vault in VS Code, Cursor, or Antigravity with a single click
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+A macOS desktop plugin for Obsidian that adds a ribbon button to launch your vault (and optionally the active file) in your preferred code editor.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## Highlights
 
-## First time developing plugins?
+- **One-click launch** from the ribbon
+- **Open current file** option to jump directly to the active note
+- **Smart fallback** from CLI to `open -a` when CLI is unavailable
+- **Path-safe** handling for spaces and special characters
+- **Zero shell execution** for security and reliability
 
-Quick starting guide for new plugin devs:
+## Supported Editors
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+| Editor | Primary Launch | Fallback |
+|--------|---------------|----------|
+| Visual Studio Code | `code` CLI | `open -a "Visual Studio Code"` |
+| Cursor | `open -a "Cursor"` | - |
+| Antigravity | `agy` CLI | `open -a "Antigravity"` |
 
-## Releasing new releases
+Cursor uses `open -a` exclusively to avoid CLI argument parsing issues.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Installation
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+1. Open **Settings > Community plugins** in Obsidian
+2. Search for **Vault Launcher**
+3. Click **Install**, then **Enable**
 
-## Adding your plugin to the community plugin list
+## Usage
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+1. Click the rocket icon in the ribbon
+2. Select your default editor in **Settings > Obsidian Vault Launcher**
+3. Toggle **Open current file** to include the active note
+4. Enable editors in the **Enabled editors** section to add them to the command palette
 
-## How to use
+## Configuration
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+Settings are persisted via Obsidian's `loadData()` / `saveData()`:
 
-## Manually installing the plugin
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `editorType` | `vscode` \| `cursor` \| `antigravity` | `vscode` | Default editor for ribbon icon |
+| `openCurrentFile` | `boolean` | `false` | Include active file in launch |
+| `enabledEditors` | `Record<EditorType, boolean>` | all `false` | Editors to show in command palette |
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+---
 
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+## Development
 
-## Funding URL
+### Prerequisites
 
-You can include funding URLs where people who use your plugin can financially support it.
+- macOS
+- [Bun](https://bun.sh) runtime
+- Obsidian 1.7.2+
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+### Setup
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```bash
+# Clone to plugin directory
+git clone https://github.com/user/obsidian-vault-launcher \
+  <vault>/.obsidian/plugins/obsidian-vault-launcher
+
+# Install dependencies
+bun install
+
+# Build
+bun run build
 ```
 
-If you have multiple URLs, you can also do:
+### Watch Mode
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+```bash
+bun run dev
 ```
 
-## API Documentation
+### Build
 
-See https://docs.obsidian.md
+```bash
+bun run build  # includes type checking
+```
+
+### Test
+
+Unit tests:
+
+```bash
+bun run test
+```
+
+Integration tests (launches real applications):
+
+```bash
+INTEGRATION=1 \
+  INTEGRATION_VAULT_PATH=/path/to/vault \
+  INTEGRATION_FILE_PATH=/path/to/vault/note.md \
+  bun run test:integration
+```
+
+### Lint & Format
+
+```bash
+bun run lint
+bun run format
+```
+
+## Technical Notes
+
+- Requires Obsidian 1.7.2+ (for `removeCommand` API)
+- macOS desktop only
+- Uses `spawn` with `shell: false` for secure path handling
+- Paths passed as separate arguments to preserve spaces and special characters
+- 10-second timeout per launch attempt
+- CLI failure triggers fallback; timeout does not
+
+## Acknowledgments
+
+Inspired by [open-obsidian-to-ide](https://github.com/maoxiaoke/open-obsidian-to-ide) by [@maoxiaoke](https://github.com/maoxiaoke).
+
+## License
+
+MIT
