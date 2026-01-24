@@ -53,7 +53,7 @@ export default class ObsidianVaultLauncher extends Plugin {
     if (isRecord(data.enabledEditors)) {
       for (const key of Object.keys(enabledEditors) as EditorType[]) {
         if (typeof data.enabledEditors[key] === "boolean") {
-          enabledEditors[key] = data.enabledEditors[key] as boolean;
+          enabledEditors[key] = data.enabledEditors[key];
         }
       }
     }

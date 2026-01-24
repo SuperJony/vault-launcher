@@ -24,9 +24,6 @@ export class VaultLauncherSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    // Page title
-    containerEl.createEl("h2", { text: "Vault Launcher" });
-
     // 1. Quick launch editor
     new Setting(containerEl)
       .setName("Quick launch editor")

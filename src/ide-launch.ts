@@ -97,6 +97,16 @@ type SpawnFailure =
       stderr?: string;
     };
 
+class SpawnFailureError extends Error {
+  failure: SpawnFailure;
+
+  constructor(failure: SpawnFailure, message: string) {
+    super(message);
+    this.name = "SpawnFailureError";
+    this.failure = failure;
+  }
+}
+
 type FailureDetails = {
   reason: "error" | "exit" | "signal" | "timeout";
   code: number | null;
@@ -107,17 +117,6 @@ type FailureDetails = {
 };
 
 type AttemptOutcome = { status: "success" } | { status: "failure"; failure: FailureDetails };
-
-function isSpawnFailure(value: unknown): value is SpawnFailure {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  if (!("kind" in value)) {
-    return false;
-  }
-  const kind = (value as { kind?: unknown }).kind;
-  return kind === "error" || kind === "timeout";
-}
 
 function appendTail(existing: AnyBuffer, chunk: AnyBuffer | string): AnyBuffer {
   const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
@@ -298,11 +297,16 @@ async function runSpawn(
       }
       settled = true;
       child.kill("SIGTERM");
-      reject({
-        kind: "timeout",
-        stdout: bufferToString(stdoutTail),
-        stderr: bufferToString(stderrTail),
-      } satisfies SpawnFailure);
+      reject(
+        new SpawnFailureError(
+          {
+            kind: "timeout",
+            stdout: bufferToString(stdoutTail),
+            stderr: bufferToString(stderrTail),
+          },
+          `Spawn timed out after ${timeoutMs} ms`,
+        ),
+      );
     }, timeoutMs);
 
     const finalize = () => {
@@ -315,12 +319,17 @@ async function runSpawn(
       }
       settled = true;
       finalize();
-      reject({
-        kind: "error",
-        error,
-        stdout: bufferToString(stdoutTail),
-        stderr: bufferToString(stderrTail),
-      } satisfies SpawnFailure);
+      reject(
+        new SpawnFailureError(
+          {
+            kind: "error",
+            error,
+            stdout: bufferToString(stdoutTail),
+            stderr: bufferToString(stderrTail),
+          },
+          "Spawn failed",
+        ),
+      );
     });
 
     child.on("close", (code, signal) => {
@@ -364,16 +373,16 @@ async function attemptLaunch(
     }
     return { status: "success" };
   } catch (error) {
-    if (isSpawnFailure(error)) {
-      if (error.kind === "timeout") {
+    if (error instanceof SpawnFailureError) {
+      if (error.failure.kind === "timeout") {
         return {
           status: "failure",
           failure: {
             reason: "timeout",
             code: null,
             signal: null,
-            stdout: error.stdout,
-            stderr: error.stderr,
+            stdout: error.failure.stdout,
+            stderr: error.failure.stderr,
           },
         };
       }
@@ -383,9 +392,9 @@ async function attemptLaunch(
           reason: "error",
           code: null,
           signal: null,
-          stdout: error.stdout,
-          stderr: error.stderr,
-          error: error.error,
+          stdout: error.failure.stdout,
+          stderr: error.failure.stderr,
+          error: error.failure.error,
         },
       };
     }
