@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const targetVersion = process.env.npm_package_version;
@@ -20,3 +21,6 @@ if (!Object.values(versions).includes(minAppVersion)) {
   versions[targetVersion] = minAppVersion;
   writeFileSync("versions.json", JSON.stringify(versions, null, "\t"));
 }
+
+// stage the updated files for npm version commit
+execFileSync("git", ["add", "manifest.json", "versions.json"]);

@@ -1,7 +1,7 @@
 {
   "id": "vault-launcher",
   "name": "Vault Launcher",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minAppVersion": "1.7.2",
   "description": "Open vault in VS Code, Cursor, or Antigravity.",
   "author": "Jony",
