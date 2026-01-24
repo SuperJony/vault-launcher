@@ -39,9 +39,9 @@ Cursor uses `open -a` exclusively to avoid CLI argument parsing issues.
 ## Usage
 
 1. Click the rocket icon in the ribbon
-2. Select your default editor in **Settings > Obsidian Vault Launcher**
-3. Toggle **Open current file** to include the active note
-4. Enable editors in the **Enabled editors** section to add them to the command palette
+2. Select **Quick launch editor** in settings to change default editor
+3. Toggle **Open current file** to include active note
+4. Enable editors in **Show in command palette** to add commands
 
 ## Configuration
 

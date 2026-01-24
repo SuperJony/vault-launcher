@@ -39,9 +39,9 @@ Cursor 仅使用 `open -a` 以避免 CLI 参数解析问题。
 ## 使用方式
 
 1. 点击 ribbon 中的火箭图标
-2. 在 **设置 > Obsidian Vault Launcher** 中选择默认编辑器
+2. 在设置中选择 **Quick launch editor** 更改默认编辑器
 3. 开启 **Open current file** 以包含当前笔记
-4. 在 **Enabled editors** 中启用编辑器以添加到命令面板
+4. 在 **Show in command palette** 中启用编辑器以添加命令
 
 ## 配置
 
