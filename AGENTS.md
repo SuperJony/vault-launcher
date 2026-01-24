@@ -34,7 +34,8 @@ Use Bun for all scripts:
   - `INTEGRATION_FILE_PATH`
 
 ## Commit & Pull Request Guidelines
-- No git history yet; use Conventional Commits (e.g., `feat: add launch plan`).
+- Use `gh` for all GitHub operations (repo, issues, PRs, releases, checks)
+- Use Conventional Commits (e.g., `feat: add launch plan`).
 - Keep commits atomic: one logical change per commit; avoid bundling unrelated edits.
 - PRs should include a short description, linked issue, test results, and screenshots for UI changes.
 
