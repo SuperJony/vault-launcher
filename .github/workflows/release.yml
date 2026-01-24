@@ -34,6 +34,12 @@ jobs:
             exit 1
           fi
 
+      - name: Package plugin
+        run: |
+          mkdir -p vault-launcher
+          cp main.js manifest.json vault-launcher/
+          zip -r vault-launcher.zip vault-launcher
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,4 +48,4 @@ jobs:
           gh release create "$tag" \
             --title="$tag" \
             --draft \
-            main.js manifest.json
+            vault-launcher.zip main.js manifest.json

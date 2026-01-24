@@ -24,9 +24,17 @@ Cursor 仅使用 `open -a` 以避免 CLI 参数解析问题。
 
 ## 安装
 
+### 社区插件（推荐）
+
 1. 在 Obsidian 中打开 **设置 > 第三方插件**
 2. 搜索 **Vault Launcher**
 3. 点击 **安装**，然后 **启用**
+
+### 手动安装
+
+1. 从 [最新 Release](https://github.com/user/obsidian-vault-launcher/releases/latest) 下载 `vault-launcher.zip`
+2. 解压到 `<vault>/.obsidian/plugins/`
+3. 在 **设置 > 第三方插件** 中启用
 
 ## 使用方式
 
@@ -115,7 +123,7 @@ git push && git push --tags
 GitHub Actions 会：
 1. 构建插件
 2. 验证 tag 与 `manifest.json` 版本一致
-3. 创建包含 `main.js` 和 `manifest.json` 的草稿 Release
+3. 创建包含 `vault-launcher.zip`、`main.js` 和 `manifest.json` 的草稿 Release
 
 然后在 GitHub 上发布草稿。
 

@@ -24,9 +24,17 @@ Cursor uses `open -a` exclusively to avoid CLI argument parsing issues.
 
 ## Installation
 
+### Community Plugins (Recommended)
+
 1. Open **Settings > Community plugins** in Obsidian
 2. Search for **Vault Launcher**
 3. Click **Install**, then **Enable**
+
+### Manual Installation
+
+1. Download `vault-launcher.zip` from the [latest release](https://github.com/user/obsidian-vault-launcher/releases/latest)
+2. Extract to `<vault>/.obsidian/plugins/`
+3. Enable the plugin in **Settings > Community plugins**
 
 ## Usage
 
@@ -115,7 +123,7 @@ git push && git push --tags
 GitHub Actions will:
 1. Build the plugin
 2. Verify tag matches `manifest.json` version
-3. Create a draft release with `main.js` and `manifest.json`
+3. Create a draft release with `vault-launcher.zip`, `main.js`, and `manifest.json`
 
 Then publish the draft release on GitHub.
 
