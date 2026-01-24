@@ -53,7 +53,7 @@ Use Bun for all scripts:
 4. Publish the draft: `gh release edit <tag> --draft=false`
 
 ### Community Plugin Submission (First-time Only)
-- PR: https://github.com/obsidianmd/obsidian-releases/pull/9759
+- PR: https://github.com/obsidianmd/obsidian-releases/pull/9761
 - See `doc/PUBLISHING.md` for submission details.
 
 ### Important Notes
