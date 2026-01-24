@@ -105,6 +105,20 @@ bun run lint
 bun run format
 ```
 
+### 发布
+
+```bash
+npm version patch  # 或 minor/major，自动同步 manifest.json + versions.json
+git push && git push --tags
+```
+
+GitHub Actions 会：
+1. 构建插件
+2. 验证 tag 与 `manifest.json` 版本一致
+3. 创建包含 `main.js` 和 `manifest.json` 的草稿 Release
+
+然后在 GitHub 上发布草稿。
+
 ## 技术说明
 
 - 需要 Obsidian 1.7.2+（`removeCommand` API）

@@ -105,6 +105,20 @@ bun run lint
 bun run format
 ```
 
+### Release
+
+```bash
+npm version patch  # or minor/major, syncs manifest.json + versions.json
+git push && git push --tags
+```
+
+GitHub Actions will:
+1. Build the plugin
+2. Verify tag matches `manifest.json` version
+3. Create a draft release with `main.js` and `manifest.json`
+
+Then publish the draft release on GitHub.
+
 ## Technical Notes
 
 - Requires Obsidian 1.7.2+ (for `removeCommand` API)
