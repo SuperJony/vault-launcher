@@ -52,11 +52,9 @@ Use Bun for all scripts:
 3. GitHub Actions builds and creates a draft release
 4. Publish the draft: `gh release edit <tag> --draft=false`
 
-### Community Plugin Submission
-1. Fork [obsidian-releases](https://github.com/obsidianmd/obsidian-releases)
-2. Edit `community-plugins.json`, add entry at the end
-3. Create PR with title: `Add plugin: Vault Launcher`
-4. Use the official PR template (required for bot validation)
+### Community Plugin Submission (First-time Only)
+- PR: https://github.com/obsidianmd/obsidian-releases/pull/9759
+- See `doc/PUBLISHING.md` for submission details.
 
 ### Important Notes
 - Tag must NOT have `v` prefix for Obsidian bot validation; however `bun version` creates `v`-prefixed tags. The release workflow strips the `v` prefix when validating against `manifest.json`.
