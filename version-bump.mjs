@@ -12,14 +12,14 @@ if (!targetVersion) {
 const manifest = JSON.parse(readFileSync("manifest.json", "utf8"));
 const { minAppVersion } = manifest;
 manifest.version = targetVersion;
-writeFileSync("manifest.json", JSON.stringify(manifest, null, "\t"));
+writeFileSync("manifest.json", JSON.stringify(manifest, null, 2));
 
 // update versions.json with target version and minAppVersion from manifest.json
 // but only if the target version is not already in versions.json
 const versions = JSON.parse(readFileSync("versions.json", "utf8"));
-if (!Object.values(versions).includes(minAppVersion)) {
+if (!(targetVersion in versions)) {
   versions[targetVersion] = minAppVersion;
-  writeFileSync("versions.json", JSON.stringify(versions, null, "\t"));
+  writeFileSync("versions.json", JSON.stringify(versions, null, 2));
 }
 
 // stage the updated files for npm version commit
