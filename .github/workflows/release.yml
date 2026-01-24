@@ -27,6 +27,7 @@ jobs:
       - name: Verify tag matches manifest version
         run: |
           tag="${GITHUB_REF#refs/tags/}"
+          tag="${tag#v}"
           manifest_version=$(jq -r .version manifest.json)
           if [ "$tag" != "$manifest_version" ]; then
             echo "::error::Tag ($tag) does not match manifest.json version ($manifest_version)"
