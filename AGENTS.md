@@ -48,7 +48,7 @@ Use Bun for all scripts:
 ### Release Workflow
 1. Bump version: `bun version patch|minor|major`
    - Updates `package.json`, `manifest.json`, `versions.json` automatically
-   - Creates a commit and tag (e.g., `v1.0.1`)
+   - Creates a commit and tag (e.g., `1.0.1`)
 2. Push: `git push && git push --tags`
 3. GitHub Actions builds and creates a draft release
 4. Publish the draft: `gh release edit <tag> --draft=false`
@@ -58,7 +58,7 @@ Use Bun for all scripts:
 - See `doc/PUBLISHING.md` for submission details.
 
 ### Important Notes
-- Tag must NOT have `v` prefix for Obsidian bot validation; however `bun version` creates `v`-prefixed tags. The release workflow strips the `v` prefix when validating against `manifest.json`.
+- Tags use numeric version only (no `v` prefix), configured via `.npmrc`.
 - Ensure `bun run build` and `bun run lint` pass before releasing.
 - See `doc/PUBLISHING.md` for detailed submission requirements.
 
