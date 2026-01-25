@@ -46,7 +46,7 @@ Use Bun for all scripts:
 ## Publishing to Community Plugins
 
 ### Release Workflow
-1. Bump version: `bun version patch|minor|major`
+1. Bump version: `bun run bump patch|minor|major`
    - Updates `package.json`, `manifest.json`, `versions.json` automatically
    - Creates a commit and tag (e.g., `1.0.1`)
 2. Push: `git push && git push --tags`
