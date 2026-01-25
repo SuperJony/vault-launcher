@@ -25,19 +25,19 @@ console.log(`${pkg.version} -> ${newVersion}`);
 
 // Update package.json
 pkg.version = newVersion;
-writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
 
 // Update manifest.json
 const manifest = JSON.parse(readFileSync("manifest.json", "utf8"));
 const { minAppVersion } = manifest;
 manifest.version = newVersion;
-writeFileSync("manifest.json", JSON.stringify(manifest, null, 2) + "\n");
+writeFileSync("manifest.json", `${JSON.stringify(manifest, null, 2)}\n`);
 
 // Update versions.json
 const versions = JSON.parse(readFileSync("versions.json", "utf8"));
 if (!(newVersion in versions)) {
   versions[newVersion] = minAppVersion;
-  writeFileSync("versions.json", JSON.stringify(versions, null, 2) + "\n");
+  writeFileSync("versions.json", `${JSON.stringify(versions, null, 2)}\n`);
 }
 
 // Git commit and tag
