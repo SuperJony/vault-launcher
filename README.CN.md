@@ -32,7 +32,7 @@ Cursor 仅使用 `open -a` 以避免 CLI 参数解析问题。
 
 ### 手动安装
 
-1. 从 [最新 Release](https://github.com/user/obsidian-vault-launcher/releases/latest) 下载 `vault-launcher.zip`
+1. 从 [最新 Release](https://github.com/SuperJony/vault-launcher/releases/latest) 下载 `vault-launcher.zip`
 2. 解压到 `<vault>/.obsidian/plugins/`
 3. 在 **设置 > 第三方插件** 中启用
 
@@ -67,8 +67,8 @@ Cursor 仅使用 `open -a` 以避免 CLI 参数解析问题。
 
 ```bash
 # 克隆到插件目录
-git clone https://github.com/user/obsidian-vault-launcher \
-  <vault>/.obsidian/plugins/obsidian-vault-launcher
+git clone https://github.com/SuperJony/vault-launcher \
+  <vault>/.obsidian/plugins/vault-launcher
 
 # 安装依赖
 bun install

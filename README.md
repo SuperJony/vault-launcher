@@ -32,7 +32,7 @@ Cursor uses `open -a` exclusively to avoid CLI argument parsing issues.
 
 ### Manual Installation
 
-1. Download `vault-launcher.zip` from the [latest release](https://github.com/user/obsidian-vault-launcher/releases/latest)
+1. Download `vault-launcher.zip` from the [latest release](https://github.com/SuperJony/vault-launcher/releases/latest)
 2. Extract to `<vault>/.obsidian/plugins/`
 3. Enable the plugin in **Settings > Community plugins**
 
@@ -67,8 +67,8 @@ Settings are persisted via Obsidian's `loadData()` / `saveData()`:
 
 ```bash
 # Clone to plugin directory
-git clone https://github.com/user/obsidian-vault-launcher \
-  <vault>/.obsidian/plugins/obsidian-vault-launcher
+git clone https://github.com/SuperJony/vault-launcher \
+  <vault>/.obsidian/plugins/vault-launcher
 
 # Install dependencies
 bun install
