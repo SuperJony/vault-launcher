@@ -116,7 +116,7 @@ bun run format
 ### Release
 
 ```bash
-npm version patch  # or minor/major, syncs manifest.json + versions.json
+bun run bump patch  # or minor/major, updates package.json + manifest.json + versions.json
 git push && git push --tags
 ```
 

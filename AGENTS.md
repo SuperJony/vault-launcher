@@ -1,64 +1,19 @@
-# Repository Guidelines
+# Agent Guide
 
-## Project Structure & Module Organization
-- `src/main.ts` is the Obsidian plugin entry and registers UI/actions.
-- `src/ide-launch.ts` holds pure launch-planning/execution helpers; keep logic testable.
-- `tests/ide-launch.test.ts` is the Bun-run TypeScript test script.
-- `manifest.json` defines plugin metadata; it must align with the plugin folder name.
-- `esbuild.config.mjs` bundles `src/main.ts` into `main.js`.
-- `main.js` is generated output; do not edit by hand.
+Obsidian Vault Launcher is a macOS-only Obsidian desktop plugin that launches a vault (and optionally the active file) in external editors.
 
-## Build, Test, and Development Commands
-Use Bun for all scripts:
-- `bun install` installs dependencies.
-- `bun run dev` starts the esbuild watch build (script invokes Node internally).
-- `bun run build` runs type-checks and a production bundle.
-- `bun run test` executes `tests/ide-launch.test.ts`.
-- `bun run test:integration` runs integration tests (requires env vars).
-- `bun run lint` / `bun run format` run Biome checks and formatting.
+## Essentials For Every Task
+- Package manager: Bun (`bun install`, `bun run <script>`).
+- Build + typecheck command: `bun run build` (runs `tsc -noEmit -skipLibCheck` and a production `esbuild` bundle).
+- `main.js` is generated output; do not edit it by hand.
+- Keep launch execution path-safe: no `spawnSync`, no `shell: true`, and pass file paths as separate args.
+- Use `gh` for GitHub operations (issues, PRs, releases, checks).
 
-## Coding Style & Naming Conventions
-- TypeScript, ESM (`type: module`).
-- Biome formatting: 2-space indent, 100-char line width, double quotes.
-- Avoid `any`; keep types explicit (strict TS config).
-- Filenames: kebab-case for multiword modules (e.g., `ide-launch.ts`).
-- Keep launch logic side-effect free where possible; prefer pure helpers.
-
-## Testing Guidelines
-- Tests live in `tests/` and are plain TypeScript scripts run by Bun (no runner).
-- Name new tests `*.test.ts` and keep cases near the feature module.
-- Cover launch plan mapping, fallback behavior, and path edge cases (spaces/special chars).
-- Integration tests live in `tests/ide-launch.integration.test.ts` and require:
-  - `INTEGRATION=1`
-  - `INTEGRATION_VAULT_PATH`
-  - `INTEGRATION_FILE_PATH`
-
-## Commit & Pull Request Guidelines
-- Use `gh` for all GitHub operations (repo, issues, PRs, releases, checks)
-- Use Conventional Commits (e.g., `feat: add launch plan`).
-- Keep commits atomic: one logical change per commit; avoid bundling unrelated edits.
-- PRs should include a short description, linked issue, test results, and screenshots for UI changes.
-
-## Platform & Launch Notes
-- Plugin targets desktop only; launch commands are macOS-focused (CLI or `open -a`).
-- Do not use `spawnSync` or `shell: true`; pass paths as separate args to preserve spaces.
-
-## Publishing to Community Plugins
-
-### Release Workflow
-1. Bump version: `bun run bump patch|minor|major`
-   - Updates `package.json`, `manifest.json`, `versions.json` automatically
-   - Creates a commit and tag (e.g., `1.0.1`)
-2. Push: `git push && git push --tags`
-3. GitHub Actions builds and creates a draft release
-4. Publish the draft: `gh release edit <tag> --draft=false`
-
-### Community Plugin Submission (First-time Only)
-- PR: https://github.com/obsidianmd/obsidian-releases/pull/9761
-- See `doc/PUBLISHING.md` for submission details.
-
-### Important Notes
-- Tags use numeric version only (no `v` prefix), configured via `.npmrc`.
-- Ensure `bun run build` and `bun run lint` pass before releasing.
-- See `doc/PUBLISHING.md` for detailed submission requirements.
-
+## Progressive Disclosure
+- [Project structure](docs/agents/project-structure.md)
+- [Development commands](docs/agents/commands.md)
+- [Coding conventions](docs/agents/coding-style.md)
+- [Testing guidelines](docs/agents/testing.md)
+- [Platform and launch constraints](docs/agents/platform-launch.md)
+- [Git and PR workflow](docs/agents/github-workflow.md)
+- [Release and publishing](docs/agents/release-publishing.md)
