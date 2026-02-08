@@ -15,5 +15,6 @@ Obsidian Vault Launcher is a macOS-only Obsidian desktop plugin that launches a 
 - [Coding conventions](docs/agents/coding-style.md)
 - [Testing guidelines](docs/agents/testing.md)
 - [Platform and launch constraints](docs/agents/platform-launch.md)
+- [Launch debugging playbook](docs/agents/launch-debugging.md)
 - [Git and PR workflow](docs/agents/github-workflow.md)
 - [Release and publishing](docs/agents/release-publishing.md)
