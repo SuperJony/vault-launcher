@@ -116,7 +116,7 @@ bun run format
 ### 发布
 
 ```bash
-npm version patch  # 或 minor/major，自动同步 manifest.json + versions.json
+bun run bump patch  # 或 minor/major，自动更新 package.json + manifest.json + versions.json
 git push && git push --tags
 ```
 
