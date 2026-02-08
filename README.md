@@ -1,6 +1,6 @@
 # Obsidian Vault Launcher
 
-> Open your Obsidian vault in VS Code, Cursor, or Antigravity with a single click
+> Open your Obsidian vault in VS Code, Cursor, Antigravity, or Zed with a single click
 
 A macOS desktop plugin for Obsidian that adds a ribbon button to launch your vault (and optionally the active file) in your preferred code editor.
 
@@ -8,19 +8,20 @@ A macOS desktop plugin for Obsidian that adds a ribbon button to launch your vau
 
 - **One-click launch** from the ribbon
 - **Open current file** option to jump directly to the active note
-- **Smart fallback** from CLI to `open -a` when CLI is unavailable
+- **Unified fallback** app-open attempts use `open -a` first, then `open -b`
 - **Path-safe** handling for spaces and special characters
 - **Zero shell execution** for security and reliability
 
 ## Supported Editors
 
-| Editor | Primary Launch | Fallback |
-|--------|---------------|----------|
-| Visual Studio Code | `code` CLI | `open -a "Visual Studio Code"` |
-| Cursor | `open -a "Cursor"` | - |
-| Antigravity | `agy` CLI | `open -a "Antigravity"` |
+| Editor | Launch Order |
+|--------|--------------|
+| Visual Studio Code | `code` CLI -> `open -a "Visual Studio Code"` -> `open -b com.microsoft.VSCode` |
+| Cursor | `open -a "Cursor"` -> `open -b com.todesktop.230313mzl4w4u92` |
+| Antigravity | `agy` CLI -> `open -a "Antigravity"` -> `open -b com.google.antigravity` |
+| Zed | `open -a "Zed"` -> `open -b dev.zed.Zed` |
 
-Cursor uses `open -a` exclusively to avoid CLI argument parsing issues.
+CLI editors (VS Code, Antigravity) try CLI first, then app-open fallback (`open -a`, then `open -b`).
 
 ## Installation
 
@@ -49,7 +50,7 @@ Settings are persisted via Obsidian's `loadData()` / `saveData()`:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `editorType` | `vscode` \| `cursor` \| `antigravity` | `vscode` | Default editor for ribbon icon |
+| `editorType` | `vscode` \| `cursor` \| `antigravity` \| `zed` | `vscode` | Default editor for ribbon icon |
 | `openCurrentFile` | `boolean` | `false` | Include active file in launch |
 | `enabledEditors` | `Record<EditorType, boolean>` | all `false` | Editors to show in command palette |
 
@@ -134,6 +135,7 @@ Then publish the draft release on GitHub.
 - Uses `spawn` with `shell: false` for secure path handling
 - Paths passed as separate arguments to preserve spaces and special characters
 - 10-second timeout per launch attempt
+- App-open fallback order is `open -a`, then `open -b`; CLI editors try CLI first
 - CLI failure triggers fallback; timeout does not
 
 ## Acknowledgments

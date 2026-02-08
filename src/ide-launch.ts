@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 
-export type EditorType = "vscode" | "cursor" | "antigravity";
+export type EditorType = "vscode" | "cursor" | "antigravity" | "zed";
 
 export type LaunchCommand = {
   command: string;
@@ -9,8 +9,7 @@ export type LaunchCommand = {
 
 export type LaunchPlan = {
   editor: EditorType;
-  primary: LaunchCommand;
-  fallback?: LaunchCommand;
+  attempts: LaunchCommand[];
 };
 
 export type BuildLaunchPlanOptions = {
@@ -24,12 +23,14 @@ type EditorConfig =
   | {
       label: string;
       appName: string;
+      bundleId: string;
       cli: string;
       useCli: true;
     }
   | {
       label: string;
       appName: string;
+      bundleId: string;
       useCli: false;
     };
 
@@ -37,19 +38,28 @@ export const EDITOR_CONFIG: Record<EditorType, EditorConfig> = {
   vscode: {
     label: "Visual Studio Code",
     appName: "Visual Studio Code",
+    bundleId: "com.microsoft.VSCode",
     cli: "code",
     useCli: true,
   },
   cursor: {
     label: "Cursor",
     appName: "Cursor",
+    bundleId: "com.todesktop.230313mzl4w4u92",
     useCli: false,
   },
   antigravity: {
     label: "Antigravity",
     appName: "Antigravity",
+    bundleId: "com.google.antigravity",
     cli: "agy",
     useCli: true,
+  },
+  zed: {
+    label: "Zed",
+    appName: "Zed",
+    bundleId: "dev.zed.Zed",
+    useCli: false,
   },
 };
 
@@ -196,38 +206,55 @@ function buildCliArgs(options: BuildLaunchPlanOptions): string[] {
   return [options.vaultPath];
 }
 
-function buildOpenArgs(options: BuildLaunchPlanOptions): string[] {
+function buildOpenArgs(options: BuildLaunchPlanOptions, preferVaultFirst = false): string[] {
   if (options.openCurrentFile && options.activeFilePath) {
+    if (preferVaultFirst) {
+      return [options.vaultPath, options.activeFilePath];
+    }
     return [options.activeFilePath, options.vaultPath];
   }
   return [options.vaultPath];
 }
 
+function buildOpenAppAttempts(
+  appName: string,
+  bundleId: string,
+  openArgs: string[],
+): LaunchCommand[] {
+  return [
+    {
+      command: "open",
+      args: ["-a", appName, ...openArgs],
+    },
+    {
+      command: "open",
+      args: ["-b", bundleId, ...openArgs],
+    },
+  ];
+}
+
 export function buildLaunchPlan(options: BuildLaunchPlanOptions): LaunchPlan {
   const cliArgs = buildCliArgs(options);
-  const openArgs = buildOpenArgs(options);
+  const openArgs = buildOpenArgs(options, options.editor === "zed");
   const config = EDITOR_CONFIG[options.editor];
+  const openAttempts = buildOpenAppAttempts(config.appName, config.bundleId, openArgs);
 
   if (!config.useCli) {
     return {
       editor: options.editor,
-      primary: {
-        command: "open",
-        args: ["-a", config.appName, ...openArgs],
-      },
+      attempts: openAttempts,
     };
   }
 
   return {
     editor: options.editor,
-    primary: {
-      command: config.cli,
-      args: cliArgs,
-    },
-    fallback: {
-      command: "open",
-      args: ["-a", config.appName, ...openArgs],
-    },
+    attempts: [
+      {
+        command: config.cli,
+        args: cliArgs,
+      },
+      ...openAttempts,
+    ],
   };
 }
 
@@ -419,28 +446,19 @@ export async function runLaunchPlan(
   const env = buildSpawnEnv();
   const failureMessage = `Failed to open in ${getEditorLabel(plan.editor)}. Check console for details.`;
 
-  const primaryResult = await attemptLaunch(plan.primary, spawnImpl, timeoutMs, env);
-  if (primaryResult.status === "success") {
-    return;
+  for (const command of plan.attempts) {
+    const result = await attemptLaunch(command, spawnImpl, timeoutMs, env);
+    if (result.status === "success") {
+      return;
+    }
+
+    logFailure(command, result.failure);
+
+    if (result.failure.reason === "timeout") {
+      options?.onFailureNotice?.(failureMessage);
+      return;
+    }
   }
 
-  logFailure(plan.primary, primaryResult.failure);
-
-  if (primaryResult.failure.reason === "timeout") {
-    options?.onFailureNotice?.(failureMessage);
-    return;
-  }
-
-  if (!plan.fallback) {
-    options?.onFailureNotice?.(failureMessage);
-    return;
-  }
-
-  const fallbackResult = await attemptLaunch(plan.fallback, spawnImpl, timeoutMs, env);
-  if (fallbackResult.status === "success") {
-    return;
-  }
-
-  logFailure(plan.fallback, fallbackResult.failure);
   options?.onFailureNotice?.(failureMessage);
 }

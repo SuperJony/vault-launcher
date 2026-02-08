@@ -1,6 +1,6 @@
 # Obsidian Vault Launcher
 
-> 一键在 VS Code、Cursor 或 Antigravity 中打开 Obsidian vault
+> 一键在 VS Code、Cursor、Antigravity 或 Zed 中打开 Obsidian vault
 
 macOS 专用 Obsidian 桌面插件，通过 ribbon 按钮快速在代码编辑器中打开 vault（可选当前文件）。
 
@@ -8,19 +8,20 @@ macOS 专用 Obsidian 桌面插件，通过 ribbon 按钮快速在代码编辑�
 
 - **一键启动** ribbon 按钮直接打开
 - **打开当前文件** 可选跳转到当前笔记
-- **智能回退** CLI 不可用时自动切换到 `open -a`
+- **统一回退** 应用启动按 `open -a` 优先，失败后 `open -b`
 - **路径安全** 正确处理空格和特殊字符
 - **无 shell 执行** 安全可靠
 
 ## 支持的编辑器
 
-| 编辑器 | 主要方式 | 回退方式 |
-|--------|---------|---------|
-| Visual Studio Code | `code` CLI | `open -a "Visual Studio Code"` |
-| Cursor | `open -a "Cursor"` | - |
-| Antigravity | `agy` CLI | `open -a "Antigravity"` |
+| 编辑器 | 启动顺序 |
+|--------|---------|
+| Visual Studio Code | `code` CLI -> `open -a "Visual Studio Code"` -> `open -b com.microsoft.VSCode` |
+| Cursor | `open -a "Cursor"` -> `open -b com.todesktop.230313mzl4w4u92` |
+| Antigravity | `agy` CLI -> `open -a "Antigravity"` -> `open -b com.google.antigravity` |
+| Zed | `open -a "Zed"` -> `open -b dev.zed.Zed` |
 
-Cursor 仅使用 `open -a` 以避免 CLI 参数解析问题。
+CLI 编辑器（VS Code、Antigravity）先尝试 CLI，再走应用回退（`open -a`，再 `open -b`）。
 
 ## 安装
 
@@ -49,7 +50,7 @@ Cursor 仅使用 `open -a` 以避免 CLI 参数解析问题。
 
 | 设置项 | 类型 | 默认值 | 说明 |
 |-------|------|-------|------|
-| `editorType` | `vscode` \| `cursor` \| `antigravity` | `vscode` | ribbon 图标默认编辑器 |
+| `editorType` | `vscode` \| `cursor` \| `antigravity` \| `zed` | `vscode` | ribbon 图标默认编辑器 |
 | `openCurrentFile` | `boolean` | `false` | 是否打开当前文件 |
 | `enabledEditors` | `Record<EditorType, boolean>` | 全 `false` | 在命令面板中显示的编辑器 |
 
@@ -134,6 +135,7 @@ GitHub Actions 会：
 - 使用 `spawn` 且 `shell: false` 确保路径安全
 - 路径作为独立参数传递，正确处理空格和特殊字符
 - 每次启动 10 秒超时
+- 应用回退顺序为 `open -a`，再 `open -b`；CLI 编辑器先尝试 CLI
 - CLI 失败触发回退；超时不触发
 
 ## 致谢

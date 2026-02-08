@@ -84,7 +84,7 @@ const INTEGRATION_FILE_PATH = process.env.INTEGRATION_FILE_PATH;
 if (!INTEGRATION) {
   console.log("skip - integration disabled (set INTEGRATION=1)");
 } else {
-  test("integration: launches code/agy/cursor with real commands", async () => {
+  test("integration: launches code/agy/cursor/zed with real commands", async () => {
     if (!INTEGRATION_VAULT_PATH || !INTEGRATION_FILE_PATH) {
       throw new Error("Set INTEGRATION_VAULT_PATH and INTEGRATION_FILE_PATH when INTEGRATION=1.");
     }
@@ -92,7 +92,7 @@ if (!INTEGRATION) {
     await access(INTEGRATION_VAULT_PATH);
     await access(INTEGRATION_FILE_PATH);
 
-    const editors = ["vscode", "antigravity", "cursor"] as const;
+    const editors = ["vscode", "antigravity", "cursor", "zed"] as const;
     for (const editor of editors) {
       const plan = buildLaunchPlan({
         editor,
@@ -105,14 +105,14 @@ if (!INTEGRATION) {
     }
   });
 
-  test("integration: launches code/agy/cursor with vault only", async () => {
+  test("integration: launches code/agy/cursor/zed with vault only", async () => {
     if (!INTEGRATION_VAULT_PATH) {
       throw new Error("Set INTEGRATION_VAULT_PATH when INTEGRATION=1.");
     }
 
     await access(INTEGRATION_VAULT_PATH);
 
-    const editors = ["vscode", "antigravity", "cursor"] as const;
+    const editors = ["vscode", "antigravity", "cursor", "zed"] as const;
     for (const editor of editors) {
       const plan = buildLaunchPlan({
         editor,

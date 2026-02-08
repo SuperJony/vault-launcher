@@ -6,10 +6,11 @@ const EDITOR_OPTIONS: Record<EditorType, string> = {
   vscode: EDITOR_CONFIG.vscode.label,
   cursor: EDITOR_CONFIG.cursor.label,
   antigravity: EDITOR_CONFIG.antigravity.label,
+  zed: EDITOR_CONFIG.zed.label,
 };
 
 function isEditorType(value: unknown): value is EditorType {
-  return value === "vscode" || value === "cursor" || value === "antigravity";
+  return value === "vscode" || value === "cursor" || value === "antigravity" || value === "zed";
 }
 
 export class VaultLauncherSettingTab extends PluginSettingTab {

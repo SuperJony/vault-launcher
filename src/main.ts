@@ -20,7 +20,7 @@ interface ObsidianVaultLauncherSettings {
 const DEFAULT_SETTINGS: ObsidianVaultLauncherSettings = {
   editorType: "vscode",
   openCurrentFile: false,
-  enabledEditors: { vscode: false, cursor: false, antigravity: false },
+  enabledEditors: { vscode: false, cursor: false, antigravity: false, zed: false },
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -28,7 +28,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isEditorType(value: unknown): value is EditorType {
-  return value === "vscode" || value === "cursor" || value === "antigravity";
+  return value === "vscode" || value === "cursor" || value === "antigravity" || value === "zed";
 }
 
 export default class ObsidianVaultLauncher extends Plugin {

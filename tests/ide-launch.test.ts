@@ -37,15 +37,57 @@ const TAIL_BYTES = 8192;
 const TEST_TIMEOUT_MS = 2000;
 
 const cliCases = [
-  { editor: "vscode" as const, cli: "code", appName: "Visual Studio Code" },
-  { editor: "antigravity" as const, cli: "agy", appName: "Antigravity" },
+  {
+    editor: "vscode" as const,
+    cli: "code",
+    appName: "Visual Studio Code",
+    bundleId: "com.microsoft.VSCode",
+  },
+  {
+    editor: "antigravity" as const,
+    cli: "agy",
+    appName: "Antigravity",
+    bundleId: "com.google.antigravity",
+  },
 ];
 
-function openArgs(appName: string, args: string[]) {
+const nonCliCases = [
+  {
+    editor: "cursor" as const,
+    appName: "Cursor",
+    bundleId: "com.todesktop.230313mzl4w4u92",
+    withFileArgs: openArgsWithFile,
+  },
+  {
+    editor: "zed" as const,
+    appName: "Zed",
+    bundleId: "dev.zed.Zed",
+    withFileArgs: [vaultPath, activeFilePath],
+  },
+];
+
+function appOpenArgs(appName: string, args: string[]) {
   return ["-a", appName, ...args];
 }
 
-for (const { editor, cli, appName } of cliCases) {
+function bundleOpenArgs(bundleId: string, args: string[]) {
+  return ["-b", bundleId, ...args];
+}
+
+function openAttempts(appName: string, bundleId: string, args: string[]) {
+  return [
+    {
+      command: "open",
+      args: appOpenArgs(appName, args),
+    },
+    {
+      command: "open",
+      args: bundleOpenArgs(bundleId, args),
+    },
+  ];
+}
+
+for (const { editor, cli, appName, bundleId } of cliCases) {
   test(`${editor}: open current file`, () => {
     const plan = buildLaunchPlan({
       editor,
@@ -54,11 +96,10 @@ for (const { editor, cli, appName } of cliCases) {
       openCurrentFile: true,
     });
 
-    assert.deepEqual(plan.primary, { command: cli, args: cliArgsWithFile });
-    assert.deepEqual(plan.fallback, {
-      command: "open",
-      args: openArgs(appName, openArgsWithFile),
-    });
+    assert.deepEqual(plan.attempts, [
+      { command: cli, args: cliArgsWithFile },
+      ...openAttempts(appName, bundleId, openArgsWithFile),
+    ]);
   });
 
   test(`${editor}: vault only when openCurrentFile is false`, () => {
@@ -69,11 +110,10 @@ for (const { editor, cli, appName } of cliCases) {
       openCurrentFile: false,
     });
 
-    assert.deepEqual(plan.primary, { command: cli, args: cliArgsVaultOnly });
-    assert.deepEqual(plan.fallback, {
-      command: "open",
-      args: openArgs(appName, openArgsVaultOnly),
-    });
+    assert.deepEqual(plan.attempts, [
+      { command: cli, args: cliArgsVaultOnly },
+      ...openAttempts(appName, bundleId, openArgsVaultOnly),
+    ]);
   });
 
   test(`${editor}: vault only when active file is missing`, () => {
@@ -84,58 +124,47 @@ for (const { editor, cli, appName } of cliCases) {
       openCurrentFile: true,
     });
 
-    assert.deepEqual(plan.primary, { command: cli, args: cliArgsVaultOnly });
-    assert.deepEqual(plan.fallback, {
-      command: "open",
-      args: openArgs(appName, openArgsVaultOnly),
-    });
+    assert.deepEqual(plan.attempts, [
+      { command: cli, args: cliArgsVaultOnly },
+      ...openAttempts(appName, bundleId, openArgsVaultOnly),
+    ]);
   });
 }
 
-test("cursor: open current file uses open -a primary and no fallback", () => {
-  const plan = buildLaunchPlan({
-    editor: "cursor",
-    vaultPath,
-    activeFilePath,
-    openCurrentFile: true,
+for (const { editor, appName, bundleId, withFileArgs } of nonCliCases) {
+  test(`${editor}: open current file uses open -a then open -b`, () => {
+    const plan = buildLaunchPlan({
+      editor,
+      vaultPath,
+      activeFilePath,
+      openCurrentFile: true,
+    });
+
+    assert.deepEqual(plan.attempts, openAttempts(appName, bundleId, withFileArgs));
   });
 
-  assert.deepEqual(plan.primary, {
-    command: "open",
-    args: openArgs("Cursor", openArgsWithFile),
-  });
-  assert.equal(plan.fallback, undefined);
-});
+  test(`${editor}: vault only when openCurrentFile is false`, () => {
+    const plan = buildLaunchPlan({
+      editor,
+      vaultPath,
+      activeFilePath,
+      openCurrentFile: false,
+    });
 
-test("cursor: vault only when openCurrentFile is false", () => {
-  const plan = buildLaunchPlan({
-    editor: "cursor",
-    vaultPath,
-    activeFilePath,
-    openCurrentFile: false,
+    assert.deepEqual(plan.attempts, openAttempts(appName, bundleId, openArgsVaultOnly));
   });
 
-  assert.deepEqual(plan.primary, {
-    command: "open",
-    args: openArgs("Cursor", openArgsVaultOnly),
-  });
-  assert.equal(plan.fallback, undefined);
-});
+  test(`${editor}: vault only when active file is missing`, () => {
+    const plan = buildLaunchPlan({
+      editor,
+      vaultPath,
+      activeFilePath: null,
+      openCurrentFile: true,
+    });
 
-test("cursor: vault only when active file is missing", () => {
-  const plan = buildLaunchPlan({
-    editor: "cursor",
-    vaultPath,
-    activeFilePath: null,
-    openCurrentFile: true,
+    assert.deepEqual(plan.attempts, openAttempts(appName, bundleId, openArgsVaultOnly));
   });
-
-  assert.deepEqual(plan.primary, {
-    command: "open",
-    args: openArgs("Cursor", openArgsVaultOnly),
-  });
-  assert.equal(plan.fallback, undefined);
-});
+}
 
 test("buildLaunchPlan: preserves special characters in paths", () => {
   const specialVault = "/Users/test/Vault #1 | Space";
@@ -147,7 +176,17 @@ test("buildLaunchPlan: preserves special characters in paths", () => {
     openCurrentFile: true,
   });
 
-  assert.deepEqual(plan.primary.args, ["-g", specialFile, specialVault]);
+  assert.deepEqual(plan.attempts, [
+    { command: "code", args: ["-g", specialFile, specialVault] },
+    {
+      command: "open",
+      args: ["-a", "Visual Studio Code", specialFile, specialVault],
+    },
+    {
+      command: "open",
+      args: ["-b", "com.microsoft.VSCode", specialFile, specialVault],
+    },
+  ]);
 });
 
 type SpawnCall = {
@@ -264,7 +303,7 @@ function createSpawnMock(outcomes: SpawnOutcome[]) {
   return { spawnImpl, calls, kills, optionsList };
 }
 
-test("runLaunchPlan: primary success does not trigger fallback", async () => {
+test("runLaunchPlan: stops on first success", async () => {
   const plan = buildLaunchPlan({
     editor: "vscode",
     vaultPath,
@@ -276,7 +315,7 @@ test("runLaunchPlan: primary success does not trigger fallback", async () => {
   await runLaunchPlan(plan, spawnImpl);
 
   assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0], plan.primary);
+  assert.deepEqual(calls[0], plan.attempts[0]);
 });
 
 test("runLaunchPlan: extends PATH for CLI launches", async () => {
@@ -319,7 +358,7 @@ test("runLaunchPlan: extends PATH for CLI launches", async () => {
   }
 });
 
-test("runLaunchPlan: primary failure triggers fallback once", async () => {
+test("runLaunchPlan: retries next attempt on non-timeout failure", async () => {
   const plan = buildLaunchPlan({
     editor: "vscode",
     vaultPath,
@@ -334,11 +373,11 @@ test("runLaunchPlan: primary failure triggers fallback once", async () => {
   await runLaunchPlan(plan, spawnImpl);
 
   assert.equal(calls.length, 2);
-  assert.deepEqual(calls[0], plan.primary);
-  assert.deepEqual(calls[1], plan.fallback);
+  assert.deepEqual(calls[0], plan.attempts[0]);
+  assert.deepEqual(calls[1], plan.attempts[1]);
 });
 
-test("runLaunchPlan: error event triggers fallback", async () => {
+test("runLaunchPlan: error event retries next attempt", async () => {
   const plan = buildLaunchPlan({
     editor: "antigravity",
     vaultPath,
@@ -356,11 +395,11 @@ test("runLaunchPlan: error event triggers fallback", async () => {
   await runLaunchPlan(plan, spawnImpl);
 
   assert.equal(calls.length, 2);
-  assert.deepEqual(calls[0], plan.primary);
-  assert.deepEqual(calls[1], plan.fallback);
+  assert.deepEqual(calls[0], plan.attempts[0]);
+  assert.deepEqual(calls[1], plan.attempts[1]);
 });
 
-test("runLaunchPlan: signal failure triggers fallback once", async () => {
+test("runLaunchPlan: signal failure retries next attempt", async () => {
   const plan = buildLaunchPlan({
     editor: "antigravity",
     vaultPath,
@@ -375,8 +414,8 @@ test("runLaunchPlan: signal failure triggers fallback once", async () => {
   await runLaunchPlan(plan, spawnImpl);
 
   assert.equal(calls.length, 2);
-  assert.deepEqual(calls[0], plan.primary);
-  assert.deepEqual(calls[1], plan.fallback);
+  assert.deepEqual(calls[0], plan.attempts[0]);
+  assert.deepEqual(calls[1], plan.attempts[1]);
 });
 
 function collectStringsFromValue(value: unknown, results: string[], seen: Set<unknown>) {
@@ -488,11 +527,11 @@ test("runLaunchPlan: truncates stdout/stderr to 8 KB (8192 bytes) on failure log
   );
   assert.ok(!joined.includes(longStdout), "Expected stdout to be truncated to 8 KB");
   assert.ok(!joined.includes(longStderr), "Expected stderr to be truncated to 8 KB");
-  assert.ok(joined.includes(plan.primary.command), "Expected command to be logged");
+  assert.ok(joined.includes(plan.attempts[0].command), "Expected command to be logged");
   assert.ok(joined.includes(activeFilePath), "Expected args to be logged");
 });
 
-test("runLaunchPlan: timeout does not trigger fallback", async () => {
+test("runLaunchPlan: timeout stops chain (no further retries)", async () => {
   const plan = buildLaunchPlan({
     editor: "vscode",
     vaultPath,
@@ -504,34 +543,39 @@ test("runLaunchPlan: timeout does not trigger fallback", async () => {
   await withTestTimeout(runLaunchPlan(plan, spawnImpl, { timeoutMs: 5 }), 50);
 
   assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0], plan.primary);
+  assert.deepEqual(calls[0], plan.attempts[0]);
   assert.equal(kills.length, 1);
   assert.equal(kills[0], "SIGTERM");
 });
 
-test("runLaunchPlan: cursor failure does not attempt fallback", async () => {
+test("runLaunchPlan: non-CLI retry uses bundle-id attempt after app-name failure", async () => {
   const plan = buildLaunchPlan({
     editor: "cursor",
     vaultPath,
     activeFilePath,
     openCurrentFile: true,
   });
-  const { spawnImpl, calls } = createSpawnMock([{ type: "close", code: 1, signal: null }]);
+  const { spawnImpl, calls } = createSpawnMock([
+    { type: "close", code: 1, signal: null },
+    { type: "close", code: 0, signal: null },
+  ]);
 
   await runLaunchPlan(plan, spawnImpl);
 
-  assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0], plan.primary);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0], plan.attempts[0]);
+  assert.deepEqual(calls[1], plan.attempts[1]);
 });
 
-test("runLaunchPlan: failure notice fires once when primary and fallback fail", async () => {
+test("runLaunchPlan: failure notice emitted once after all attempts fail", async () => {
   const plan = buildLaunchPlan({
     editor: "antigravity",
     vaultPath,
     activeFilePath,
     openCurrentFile: true,
   });
-  const { spawnImpl } = createSpawnMock([
+  const { spawnImpl, calls } = createSpawnMock([
+    { type: "close", code: 1, signal: null },
     { type: "close", code: 1, signal: null },
     { type: "close", code: 1, signal: null },
   ]);
@@ -543,14 +587,15 @@ test("runLaunchPlan: failure notice fires once when primary and fallback fail", 
     },
   });
 
+  assert.equal(calls.length, plan.attempts.length);
   assert.equal(notices.length, 1);
 });
 
 // computeCommandSyncActions tests
 
 test("computeCommandSyncActions: enable unregistered editor -> register action", () => {
-  const enabledEditors = { vscode: true, cursor: false, antigravity: false };
-  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity">();
+  const enabledEditors = { vscode: true, cursor: false, antigravity: false, zed: false };
+  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity" | "zed">();
 
   const actions = computeCommandSyncActions(enabledEditors, registeredCommands);
 
@@ -559,8 +604,8 @@ test("computeCommandSyncActions: enable unregistered editor -> register action",
 });
 
 test("computeCommandSyncActions: disable registered editor -> unregister action", () => {
-  const enabledEditors = { vscode: false, cursor: false, antigravity: false };
-  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity">(["vscode"]);
+  const enabledEditors = { vscode: false, cursor: false, antigravity: false, zed: false };
+  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity" | "zed">(["vscode"]);
 
   const actions = computeCommandSyncActions(enabledEditors, registeredCommands);
 
@@ -569,8 +614,8 @@ test("computeCommandSyncActions: disable registered editor -> unregister action"
 });
 
 test("computeCommandSyncActions: no state change -> empty actions", () => {
-  const enabledEditors = { vscode: true, cursor: false, antigravity: false };
-  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity">(["vscode"]);
+  const enabledEditors = { vscode: true, cursor: false, antigravity: false, zed: false };
+  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity" | "zed">(["vscode"]);
 
   const actions = computeCommandSyncActions(enabledEditors, registeredCommands);
 
@@ -578,32 +623,36 @@ test("computeCommandSyncActions: no state change -> empty actions", () => {
 });
 
 test("computeCommandSyncActions: enable multiple editors -> multiple register actions", () => {
-  const enabledEditors = { vscode: true, cursor: true, antigravity: true };
-  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity">();
+  const enabledEditors = { vscode: true, cursor: true, antigravity: true, zed: true };
+  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity" | "zed">();
 
   const actions = computeCommandSyncActions(enabledEditors, registeredCommands);
 
-  assert.equal(actions.length, 3);
+  assert.equal(actions.length, 4);
   const registerTypes = actions.filter((a) => a.type === "register").map((a) => a.editorKey);
   assert.ok(registerTypes.includes("vscode"));
   assert.ok(registerTypes.includes("cursor"));
   assert.ok(registerTypes.includes("antigravity"));
+  assert.ok(registerTypes.includes("zed"));
 });
 
 test("computeCommandSyncActions: mixed states -> correct actions for each", () => {
-  const enabledEditors = { vscode: true, cursor: false, antigravity: true };
-  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity">([
+  const enabledEditors = { vscode: true, cursor: false, antigravity: true, zed: false };
+  const registeredCommands = new Set<"vscode" | "cursor" | "antigravity" | "zed">([
     "cursor",
     "antigravity",
+    "zed",
   ]);
 
   const actions = computeCommandSyncActions(enabledEditors, registeredCommands);
 
-  assert.equal(actions.length, 2);
+  assert.equal(actions.length, 3);
   const vsAction = actions.find((a) => a.editorKey === "vscode");
   const cursorAction = actions.find((a) => a.editorKey === "cursor");
+  const zedAction = actions.find((a) => a.editorKey === "zed");
   assert.deepEqual(vsAction, { type: "register", editorKey: "vscode" });
   assert.deepEqual(cursorAction, { type: "unregister", editorKey: "cursor" });
+  assert.deepEqual(zedAction, { type: "unregister", editorKey: "zed" });
 });
 
 for (const { name, fn } of tests) {
